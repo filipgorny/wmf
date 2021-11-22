@@ -10,5 +10,5 @@ var currentId int64 = 0
 
 func NewWindow() *Window {
 	currentId++
-	return &Window{Id: currentId}
+	return &Window{Id: currentId, Width: 400, Height: 400}
 }

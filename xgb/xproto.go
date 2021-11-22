@@ -2,9 +2,12 @@ package xgb
 
 import (
 	"fmt"
+	"image"
 
 	"github.com/BurntSushi/xgb"
 	"github.com/BurntSushi/xgb/xproto"
+	"github.com/filipgorny/wmf/theme"
+	"github.com/llgcode/draw2d/draw2dimg"
 )
 
 func createWindow(xcon *xgb.Conn, screen *xproto.ScreenInfo, width uint16, height uint16) xproto.Window{
@@ -53,4 +56,29 @@ func createWindow(xcon *xgb.Conn, screen *xproto.ScreenInfo, width uint16, heigh
 	}
 
 	return wid
+}
+
+func createBorder(xcon *xgb.Conn, screen *xproto.ScreenInfo, width uint16, height uint16) {
+	r := image.Rectangle{
+		Min: image.Point{0, 0},
+		Max: image.Point{int(width), titleBarHeight},
+	}
+
+	dest := image.NewRGBA(r)
+	gc := draw2dimg.NewGraphicContext(dest)
+
+	t := theme.NewTheme("basic")
+
+	source, err := draw2dimg.LoadFromPngFile(t.GetTitleBarImagePath())
+
+	if err != nil {
+		panic(err)
+	}
+
+	for i := 0; i < int(width); i++ {
+		gc.DrawImage(source)
+		gc.Translate(1, 0)
+	}
+
+	gc.Close()
 }

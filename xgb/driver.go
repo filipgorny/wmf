@@ -56,18 +56,24 @@ func (drv *XgbDriver) PaintWindow(window window.Window) {
 
 	drv.windows = append(drv.windows, xgbWindow)
 
-	
+	drv.CreateContainerWindow(&xgbWindow)
 }
 
-func (drv *XgbDriver) CreateContainerWindow(xgbWindowId *XgbWindowId {
+func (drv *XgbDriver) CreateContainerWindow(xgbWindowId *XgbWindowId) {
+	parentWidth := xgbWindowId.window.Width + borderWidth
+	parentHeight := xgbWindowId.window.Width + borderWidth
+
 	parent := createWindow(
 		drv.con,
 		drv.screen,
-		xgbWindowId.window.Width + borderWidth, 
-		xgbWindowId.window.Height + borderWidth + titleBarHeight
+		parentWidth,
+		parentHeight,
 	)
 
-	xgb.ReparentWindow(drv.con, xgbWindowId.xprotoWindow, parent, 0, 0)
+	xproto.ReparentWindowChecked(drv.con, xgbWindowId.xprotoWindow, parent, 0, 0)
+	xproto.MapWindowChecked(drv.con, xgbWindowId.xprotoWindow).Check()
+
+	createBorder(drv.con, drv.screen, parentWidth, parentHeight)
 }
 
 func (drv *XgbDriver) Run() {
