@@ -5,6 +5,7 @@ import (
 
 	"github.com/BurntSushi/xgb"
 	"github.com/BurntSushi/xgb/xproto"
+	"github.com/BurntSushi/xgbutil"
 	"github.com/filipgorny/wmf/window"
 )
 
@@ -17,13 +18,14 @@ type XgbDriver struct {
 	setup  *xproto.SetupInfo
 	screen *xproto.ScreenInfo
 	con    *xgb.Conn
+	util	 *xgbutil.XUtil
 
 	windows []XgbWindowId
 }
 
 type XgbWindowId struct {
-	window     window.Window
-	xprotoWindow xproto.Window
+	window     *window.Window
+	xprotoWindow *xproto.Window
 }
 
 func NewGgbDriver() *XgbDriver {
@@ -41,8 +43,11 @@ func NewGgbDriver() *XgbDriver {
 	// gathered during connection.
 	driver.setup = xproto.Setup(X)
 
+
 	// This is the default screen with all its associated info.
 	driver.screen = driver.setup.DefaultScreen(X)
+
+	driver.util, _ = xgbutil.NewConn()
 
 	return &driver
 }
@@ -51,7 +56,7 @@ func (drv *XgbDriver) PaintWindow(window window.Window) {
 	wid := createWindow(drv.con, drv.screen, window.Width, window.Height);
 
 	xgbWindow := XgbWindowId{}
-	xgbWindow.window = window
+	xgbWindow.window = &window
 	xgbWindow.xprotoWindow = wid
 
 	drv.windows = append(drv.windows, xgbWindow)
@@ -70,10 +75,11 @@ func (drv *XgbDriver) CreateContainerWindow(xgbWindowId *XgbWindowId) {
 		parentHeight,
 	)
 
-	xproto.ReparentWindowChecked(drv.con, xgbWindowId.xprotoWindow, parent, 0, 0)
-	xproto.MapWindowChecked(drv.con, xgbWindowId.xprotoWindow).Check()
+	xproto.ReparentWindowChecked(drv.con, *xgbWindowId.xprotoWindow, *parent, 1, titleBarHeight)
 
-	createBorder(drv.con, drv.screen, parentWidth, parentHeight)
+
+	createBorder(*drv, *xgbWindowId.xprotoWindow, parentWidth, parentHeight)
+	// xproto.MapWindowChecked(drv.con, *xgbWindowId.xprotoWindow).Check()
 }
 
 func (drv *XgbDriver) Run() {

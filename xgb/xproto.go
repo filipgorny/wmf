@@ -6,11 +6,12 @@ import (
 
 	"github.com/BurntSushi/xgb"
 	"github.com/BurntSushi/xgb/xproto"
+	"github.com/BurntSushi/xgbutil/xgraphics"
 	"github.com/filipgorny/wmf/theme"
 	"github.com/llgcode/draw2d/draw2dimg"
 )
 
-func createWindow(xcon *xgb.Conn, screen *xproto.ScreenInfo, width uint16, height uint16) xproto.Window{
+func createWindow(xcon *xgb.Conn, screen *xproto.ScreenInfo, width uint16, height uint16) *xproto.Window{
 	wid, _ := xproto.NewWindowId(xcon)
 
 	xproto.CreateWindow(xcon, screen.RootDepth, wid, screen.Root,
@@ -55,10 +56,10 @@ func createWindow(xcon *xgb.Conn, screen *xproto.ScreenInfo, width uint16, heigh
 		fmt.Printf("Map window %d successful!\n", wid)
 	}
 
-	return wid
+	return &wid
 }
 
-func createBorder(xcon *xgb.Conn, screen *xproto.ScreenInfo, width uint16, height uint16) {
+func createBorder(driver XgbDriver, win xproto.Window, width uint16, height uint16) {
 	r := image.Rectangle{
 		Min: image.Point{0, 0},
 		Max: image.Point{int(width), titleBarHeight},
@@ -79,6 +80,12 @@ func createBorder(xcon *xgb.Conn, screen *xproto.ScreenInfo, width uint16, heigh
 		gc.DrawImage(source)
 		gc.Translate(1, 0)
 	}
-
 	gc.Close()
+
+	ximg := xgraphics.NewConvert(driver.util, dest)
+
+	ximg.CreatePixmap()
+	ximg.XDraw()
+	ximg.XExpPaint(win, 0, 0)
+
 }

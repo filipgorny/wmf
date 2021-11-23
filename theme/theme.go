@@ -22,3 +22,10 @@ func (t *Theme) GetTitleBarImagePath() string {
 
 	return fmt.Sprintf("%s/../resources/theme/%s/titlebar.png", basepath, t.name)
 }
+
+func (t *Theme) GetTuxImagePath() string {
+	_, b, _, _ := runtime.Caller(0)
+	basepath   := filepath.Dir(b)
+
+	return fmt.Sprintf("%s/../resources/theme/%s/tux.png", basepath, t.name)
+}
